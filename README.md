@@ -2,7 +2,7 @@
 Examples of how you can use Synth to improve agents
 
 
-# Craftax Example
+# Craftax Example - Error Analysis - Cuvier 
 - Create an account at [usesynth.ai](https://www.usesynth.ai/signin)
 - Go to the account page and create an API key. Add it to SYNTH_API_KEY in .env
 - Save your OpenAI api key in .env
