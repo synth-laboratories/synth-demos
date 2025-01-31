@@ -3,7 +3,7 @@ Examples of how you can use Synth to improve agents
 
 
 # Craftax Example
-- Create an account at [use](https://www.usesynth.ai/signin)
+- Create an account at [usesynth.ai](https://www.usesynth.ai/signin)
 - Go to the account page and create an API key. Add it to SYNTH_API_KEY in .env
 - Save your OpenAI api key in .env
 - Rename your agent to "CRAFTAX-DEMO-{Your Name}. Do that by checking simple_react_agent.py lines 64, 86
