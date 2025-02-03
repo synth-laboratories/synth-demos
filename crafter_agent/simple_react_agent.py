@@ -1,3 +1,4 @@
+import os
 import uuid
 from typing import Dict, List, Literal, Optional
 
@@ -61,12 +62,13 @@ class SimpleReActLanguageAgent:
 
         ## IMPORTANT
         self.system_instance_id = str(uuid.uuid4())
-        self.system_name = "CRAFTAX-TEST-REACT-DEMO-```YOUR-NAME-HERE```"
+        self.system_name = (
+            f"CRAFTAX-TEST-REACT-DEMO-{os.getenv('DEMO_NAME', '```YOUR-NAME-HERE```')}"
+        )
         if "```YOUR-NAME-HERE```" in self.system_name:
             raise ValueError(
-                "Please replace ```YOUR-NAME-HERE``` with your name in the system_name. Line 64 in simple_react_agent.py"
+                "Please replace ```YOUR-NAME-HERE``` with your name in the system_name or set DEMO_NAME in .env"
             )
-        
 
     def render_history(self):
         def remove_empty_error_section(d):
