@@ -9,8 +9,8 @@ from craftaxlm import CraftaxACI, CraftaxClassicACI
 from craftaxlm.recording import EpisodeRecorder
 from synth_sdk.tracing.abstractions import RewardSignal
 from tqdm.asyncio import tqdm as tqdm_asyncio
-from zyk import LM
 
+# from zyk import LM
 from crafter_agent.simple_react_agent import SimpleReActLanguageAgent
 
 # Create videos directory at startup
@@ -24,7 +24,7 @@ async def run_agent_episodes(
     mode: str,
     seeds: List[int],
     max_steps: int,
-    save_upload: bool = False,
+    save_upload: bool = True,
 ) -> Tuple[Dict[int, Dict], Dict[int, List], Dict[int, bytes], Optional[float]]:
     os.environ["SYNTH_LOGGING_MODE"] = "instant"
     assert (
@@ -54,14 +54,8 @@ async def run_agent_episodes(
         else:
             envs[seed] = CraftaxACI(seed=seed, verbose=False)
 
-        lm = LM(
-            model_name=model_name,
-            formatting_model_name="gpt-4o-mini",
-            temperature=0.1,
-            synth_logging=True,
-        )
         agents[seed] = SimpleReActLanguageAgent(
-            lm=lm, mode=mode, config={"max_history": 5, "max_agent_steps": max_steps}
+            mode=mode, config={"max_history": 5, "max_agent_steps": max_steps}
         )
         recorders[seed] = EpisodeRecorder(enabled=True)
         steps_data[seed] = []
@@ -200,6 +194,28 @@ async def run_agent_episodes(
         all_videos[seed] = result["video"]
         total_rewards += result["reward"]
 
+    # Upload combined results if in training mode
+    upload_id = None
+    if save_upload:
+        from synth_sdk.tracing.abstractions import Dataset, TrainingQuestion
+        from synth_sdk.tracing.upload import upload
+
+        upload_id, questions_json, reward_signals_json, traces_json = upload(
+            dataset=Dataset(
+                questions=[
+                    TrainingQuestion(
+                        id=reward_signal.question_id,
+                        intent="Complete as many achievements as possible",
+                        criteria="Got as many achievements as possible",
+                    )
+                    for reward_signal in reward_signals
+                ],
+                reward_signals=reward_signals,
+            )
+        )
+        print(f"Uploaded {len(traces_json)} traces")
+        print(f"Uploaded {len(reward_signals)} reward signals")
+
     # Close all progress bars
     for seed in seeds:
         progress_bars[seed].close()
@@ -221,7 +237,8 @@ def load_config(config_path: str = "crafter_agent/config.toml") -> dict:
 if __name__ == "__main__":
     import asyncio
 
-    os.environ["DEMO_NAME"] = "YOUR-NAME-HERE"
+    os.environ["DEMO_NAME"] = "JOSH-SYNTH"
+    os.environ["SYNTH_LOGGING_MODE"] = "deferred"
 
     config = load_config()
     asyncio.run(

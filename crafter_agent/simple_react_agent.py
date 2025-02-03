@@ -4,13 +4,6 @@ from typing import Dict, List, Literal, Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from synth_sdk.tracing.decorators import (
-    trace_event_async,
-)
-from zyk import LM
-
-load_dotenv()
-
 from crafter_agent.game_info import (
     craftax_classic_action_dict,
     craftax_classic_game_rules,
@@ -19,6 +12,12 @@ from crafter_agent.game_info import (
     craftax_game_tips,
     crafter_game_tips,
 )
+from synth_sdk import AsyncOpenAI as SynthAsyncOpenAI
+from synth_sdk import trace_event_async
+
+load_dotenv()
+
+
 
 
 class ReAct(BaseModel):
@@ -46,24 +45,22 @@ These actions will be executed sequentially in the game environment, and the res
 class SimpleReActLanguageAgent:
     obs_history: List[Dict]
     react_history: List[Dict]
-    lm: LM
+    client: SynthAsyncOpenAI
     config: Dict
 
     def __init__(
         self,
-        lm: LM,
         mode: Literal["craftax_classic", "craftax_full"] = "craftax_classic",
         config: Optional[Dict] = None,
         instructions: str = DEFAULT_INSTRUCTIONS,
     ):
         self.obs_history = []
         self.react_history = []
-        self.lm = lm
+        self.client = SynthAsyncOpenAI()
         self.mode = mode
         self.config = config or {"max_history": 5, "max_agent_steps": 10}
         self.instructions = instructions
 
-        ## IMPORTANT
         self.system_instance_id = str(uuid.uuid4())
         self.system_name = (
             f"CRAFTAX-TEST-REACT-DEMO-{os.getenv('DEMO_NAME', 'YOUR-NAME-HERE')}"
@@ -91,7 +88,6 @@ class SimpleReActLanguageAgent:
         ]
         return "\n".join(react_history), "\n".join(obs_history)
 
-    # IMPORTANT
     @trace_event_async(
         event_type="re-act",
     )
@@ -106,6 +102,7 @@ class SimpleReActLanguageAgent:
             actions = craftax_full_action_dict
         else:
             raise ValueError(f"Mode {self.mode} not recognized")
+
         system_message = f"""
 # Premise
 You're playing the game of Crafter.
@@ -134,11 +131,18 @@ The environment one step in the past is your current environment
 
 Your next actions / thought: """
 
-        react_step = await self.lm.respond_async(
-            system_message=system_message,
-            user_message=user_message,
-            response_model=ReAct,
+        messages = [
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message},
+        ]
+
+        response = await self.client.beta.chat.completions.parse(
+            model="gpt-4o-mini",
+            messages=messages,
+            response_format=ReAct,
+            temperature=0.1,
         )
+        react_step = response.choices[0].message.parsed
         illegal_actions = [
             action
             for action in react_step.actions
