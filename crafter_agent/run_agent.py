@@ -221,6 +221,8 @@ def load_config(config_path: str = "crafter_agent/config.toml") -> dict:
 if __name__ == "__main__":
     import asyncio
 
+    os.environ["DEMO_NAME"] = "YOUR-NAME-HERE"
+
     config = load_config()
     asyncio.run(
         run_agent_episodes(

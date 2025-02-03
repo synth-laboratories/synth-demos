@@ -2,13 +2,12 @@ import os
 import uuid
 from typing import Dict, List, Literal, Optional
 
+from dotenv import load_dotenv
 from pydantic import BaseModel
 from synth_sdk.tracing.decorators import (
     trace_event_async,
 )
 from zyk import LM
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -67,11 +66,11 @@ class SimpleReActLanguageAgent:
         ## IMPORTANT
         self.system_instance_id = str(uuid.uuid4())
         self.system_name = (
-            f"CRAFTAX-TEST-REACT-DEMO-{os.environ('DEMO_NAME', '```YOUR-NAME-HERE```')}"
+            f"CRAFTAX-TEST-REACT-DEMO-{os.getenv('DEMO_NAME', 'YOUR-NAME-HERE')}"
         )
-        if "```YOUR-NAME-HERE```" in self.system_name:
+        if "YOUR-NAME-HERE" in self.system_name:
             raise ValueError(
-                "Please replace ```YOUR-NAME-HERE``` with your name in the system_name or set DEMO_NAME in .env"
+                "Please set the DEMO_NAME environment variable in your .env file"
             )
 
     def render_history(self):
