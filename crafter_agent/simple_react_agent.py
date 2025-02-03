@@ -8,6 +8,10 @@ from synth_sdk.tracing.decorators import (
 )
 from zyk import LM
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from crafter_agent.game_info import (
     craftax_classic_action_dict,
     craftax_classic_game_rules,
@@ -63,7 +67,7 @@ class SimpleReActLanguageAgent:
         ## IMPORTANT
         self.system_instance_id = str(uuid.uuid4())
         self.system_name = (
-            f"CRAFTAX-TEST-REACT-DEMO-{os.getenv('DEMO_NAME', '```YOUR-NAME-HERE```')}"
+            f"CRAFTAX-TEST-REACT-DEMO-{os.environ('DEMO_NAME', '```YOUR-NAME-HERE```')}"
         )
         if "```YOUR-NAME-HERE```" in self.system_name:
             raise ValueError(
