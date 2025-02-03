@@ -3,7 +3,7 @@ from typing import Dict, List, Literal, Optional
 
 from pydantic import BaseModel
 from synth_sdk.tracing.decorators import (
-    trace_system_async,
+    trace_event_async,
 )
 from zyk import LM
 
@@ -87,12 +87,8 @@ class SimpleReActLanguageAgent:
         return "\n".join(react_history), "\n".join(obs_history)
 
     # IMPORTANT
-    @trace_system_async(
-        origin="agent",
+    @trace_event_async(
         event_type="re-act",
-        manage_event="create_and_end",
-        increment_partition=True,
-        verbose=True,
     )
     async def get_actions(self):
         if self.mode == "classic":

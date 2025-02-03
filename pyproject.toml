@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "craftaxlm>=0.0.15",
-    "synth-sdk>=0.2.121",
-    "zyk==0.2.47",
     "imageio[pyav]>=2.36.0",
+    "zyk==0.2.54",
 ]
